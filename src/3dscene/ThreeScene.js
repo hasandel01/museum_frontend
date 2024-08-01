@@ -1,6 +1,5 @@
-import React, { useRef, useEffect, useState, act } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
-import axiosInstance from './axios/api';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 const ThreeScene = () => {
@@ -9,59 +8,69 @@ const ThreeScene = () => {
     const [initialCoordinates, setInitialCoordinates] = useState([3,-2,88])
     const [currentCoordinates, setCurrentCoordinates] = useState([3,-2,88])
     const [activity, setActivity] = useState(null)
+    const [macAddressMonaLisa, setMacAddressMonaLisa] = useState("c417c36b12d2")
 
 
     const sceneRef = useRef(null);
     const cameraRef = useRef(null);
     const rendererRef = useRef(null);
     const cubeRef = useRef(null);
+    const wsRef = useRef(null);
 
     useEffect(() => {
-        const fetchData = async () => {
+        wsRef.current = new WebSocket("ws://localhost:8080/mqtt-server");
+    
+        wsRef.current.onopen = () => {
+            console.log("WebSocket connection is established.");
+        };
+    
+        wsRef.current.onmessage = (event) => {
+        
             try {
-                const response = await axiosInstance.get('/api/beaconProperties');
-                setData(response.data);
-
-                if (response.data && response.data.Items) {
-                    response.data.Items.forEach(item => {
-                        if (item.Mac === "c417c36b12d2") {
-                            item.BeaconProperties.forEach(property => {
-                                if(property.Type == 3)  {
-                                    if(Array.isArray(property.Values)) {
-                                    const coords = property.Values;
-                                    const [x,y,z] = coords;
-                                    const [initialX, initialY, initialZ] = initialCoordinates;
-                                    setCurrentCoordinates(coords)
-                                    console.log("Coordinates: " + coords)
-
-                                    }
-                                }
-
-                                if(property.Type == 1000) {
-                                    if(Array.isArray(property.Values)) {
-                                        const activity = property.Values;
-                                        setActivity(activity)
-                                        console.log("Activity: " + activity)
-                                }
-
-                                }
-                                })
-                        }
-                    });
+                const message = JSON.parse(event.data);        
+                if (message && Array.isArray(message.Items)) {        
+                    // Process Items as needed
+                    const item = message.Items.find(item => item.Mac === macAddressMonaLisa);        
+                    if (item) {
+                        item.BeaconProperties.forEach(property => {
+                            if (property.Type === 3 && Array.isArray(property.Values)) {
+                                const coords = property.Values;
+                                setCurrentCoordinates(coords);
+                                console.log("Coordinates: ", coords);
+                            }
+                            if (property.Type === 1000 && Array.isArray(property.Values)) {
+                                const activity = property.Values[0]; // Assuming activity is a single value
+                                setActivity(activity);
+                                console.log("Activity: ", activity);
+                            }
+                        });
+                    } else {
+                        console.warn("No item found with Mac address:", macAddressMonaLisa);
+                    }
+                } else {
+                    console.warn("Items field is missing or not an array:", message);
                 }
-
             } catch (error) {
-                console.error('Error fetching data:', error);
+                console.error("Error parsing JSON message:", error);
             }
         };
-
-        fetchData();
-
-        const intervalId = setInterval(fetchData, 500);
-
-        return () => clearInterval(intervalId)
-
-    }, []);
+        
+        
+        
+        wsRef.current.onerror = (error) => {
+            console.error("WebSocket error: ", error);
+        };
+    
+        wsRef.current.onclose = () => {
+            console.log("WebSocket connection is closed.");
+        };
+    
+        return () => {
+            if (wsRef.current) {
+                wsRef.current.close();
+            }
+        };
+    }, [macAddressMonaLisa]);
 
     useEffect(() => {
 
@@ -123,12 +132,14 @@ const ThreeScene = () => {
         scene.add(cube);
 
 
-        const alarm = new THREE.SphereGeometry(0.5,32,32)
+        const alarm = new THREE.SphereGeometry(0.2,32,32)
         const alarmMaterials = new THREE.MeshBasicMaterial( {color: 0xffffff})
 
         const alarmSphere = new THREE.Mesh(alarm,alarmMaterials)
-        alarmSphere.position.set(3,3,0)
+        alarmSphere.position.set(2.5,2.5,0)
         scene.add(alarmSphere)
+
+        const alarmSound = new Audio()
 
         // Calculate initial offset
         const [initialX, initialY, initialZ] = initialCoordinates;
