@@ -1,76 +1,59 @@
 import React, { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { useWebSocket } from '../context/WebSocketContext';
 
 const ThreeScene = () => {
+
     const mountRef = useRef(null);
-    const [data, setData] = useState(null);
+    const data = useWebSocket();
     const [initialCoordinates, setInitialCoordinates] = useState([3,-2,88])
     const [currentCoordinates, setCurrentCoordinates] = useState([3,-2,88])
     const [activity, setActivity] = useState(null)
     const [macAddressMonaLisa, setMacAddressMonaLisa] = useState("c417c36b12d2")
 
-
     const sceneRef = useRef(null);
     const cameraRef = useRef(null);
     const rendererRef = useRef(null);
     const cubeRef = useRef(null);
-    const wsRef = useRef(null);
 
     useEffect(() => {
-        wsRef.current = new WebSocket("ws://localhost:8080/mqtt-server");
-    
-        wsRef.current.onopen = () => {
-            console.log("WebSocket connection is established.");
-        };
-    
-        wsRef.current.onmessage = (event) => {
-        
+
             try {
-                const message = JSON.parse(event.data);        
-                if (message && Array.isArray(message.Items)) {        
-                    // Process Items as needed
-                    const item = message.Items.find(item => item.Mac === macAddressMonaLisa);        
-                    if (item) {
-                        item.BeaconProperties.forEach(property => {
-                            if (property.Type === 3 && Array.isArray(property.Values)) {
-                                const coords = property.Values;
-                                setCurrentCoordinates(coords);
-                                console.log("Coordinates: ", coords);
+
+                if(data) {
+                
+                        const {id, message} = data
+
+                    if(id === 0) {
+                
+                        if (message && Array.isArray(message.Items)) {        
+                            // Process Items as needed
+                            const item = message.Items.find(item => item.Mac === macAddressMonaLisa);        
+                            if (item) {
+                                item.BeaconProperties.forEach(property => {
+                                    if (property.Type === 3 && Array.isArray(property.Values)) {
+                                        setCurrentCoordinates(property.Values);
+                                    }
+                                    if (property.Type === 1000 && Array.isArray(property.Values)) {
+                                        setActivity(property.Values);
+                                    }
+                                });
+                            } else {
+                                console.warn("No item found with Mac address:", macAddressMonaLisa);
                             }
-                            if (property.Type === 1000 && Array.isArray(property.Values)) {
-                                const activity = property.Values[0]; // Assuming activity is a single value
-                                setActivity(activity);
-                                console.log("Activity: ", activity);
-                            }
-                        });
-                    } else {
-                        console.warn("No item found with Mac address:", macAddressMonaLisa);
+                        } else {
+                            console.warn("Items field is missing or not an array:", message);
+                        }
+                    }else if(id === 1) {
+
                     }
-                } else {
-                    console.warn("Items field is missing or not an array:", message);
+                } 
+                } catch (error) {
+                    console.error("Error parsing JSON message:", error);
                 }
-            } catch (error) {
-                console.error("Error parsing JSON message:", error);
-            }
-        };
-        
-        
-        
-        wsRef.current.onerror = (error) => {
-            console.error("WebSocket error: ", error);
-        };
-    
-        wsRef.current.onclose = () => {
-            console.log("WebSocket connection is closed.");
-        };
-    
-        return () => {
-            if (wsRef.current) {
-                wsRef.current.close();
-            }
-        };
-    }, [macAddressMonaLisa]);
+
+    }, [data]);
 
     useEffect(() => {
 
@@ -188,8 +171,9 @@ const ThreeScene = () => {
         // Clean up
         return () => {
             window.removeEventListener('resize', handleResize);
-            mountRef.current.removeChild(renderer.domElement);
-        };
+            if (mountRef.current && rendererRef.current) {
+                mountRef.current.removeChild(rendererRef.current.domElement);
+            }        };
     }, [currentCoordinates, activity]);
 
     return <div ref={mountRef} style={{ width: '100vw', height: '100vh' }} />;

@@ -1,93 +1,109 @@
 import { useEffect, useRef, useState } from "react";
+import { useWebSocket } from "../context/WebSocketContext";
 
 const Showcase = () => {
-    const mountRef = useRef(null);
-    const [data, setData] = useState(null);
+
+    const data = useWebSocket();
+    const macAddressMonaLisa = "c417c36b12d2"
     const [activity, setActivity] = useState(null)
-    const [macAddressMonaLisa, setMacAddressMonaLisa] = useState("c417c36b12d2")
-    const [macAddress, setMacAddress] = useState("")
     const [currentCoordinates, setCurrentCoordinates] = useState([3,-2,88])
     const [click,setClick] = useState();
     const [temperature,setTemperature] = useState();
     const [batteryLevel,setBatteryLevel] = useState();
- 
-    const wsRef = useRef(null);
+    const [hubId, setHubId] = useState()
+    const [rssi,setRssi] = useState()
+    const [time,setTime] = useState()
 
+    const wsRef = useRef(null)
 
     useEffect(() => {
-        wsRef.current = new WebSocket("ws://localhost:8080/mqtt-server");
-    
-        wsRef.current.onopen = () => {
-            console.log("WebSocket connection is established.");
-        };
-    
-        wsRef.current.onmessage = (event) => {
-        
-            try {
-                const message = JSON.parse(event.data);        
-                if (message && Array.isArray(message.Items)) {        
-                    // Process Items as needed
-                    const item = message.Items.find(item => item.Mac === macAddressMonaLisa);        
-                    if (item) {
-                        item.BeaconProperties.forEach(property => {
-                            if (property.Type === 3 && Array.isArray(property.Values)) {
-                                const coords = property.Values;
-                                setCurrentCoordinates(coords);
-                            }
-                            if (property.Type === 1000 && Array.isArray(property.Values)) {
-                                const activity = property.Values[0]; // Assuming activity is a single value
-                                setActivity(activity);
-                            }
 
-                            if(property.Type === 1012 && Array.isArray(property.Values)) {
-                                const click = property.Values[0];
-                                setClick(click)
-                            }
+            try {                      
+                if(data) {
+                    const {id, message} = data  
 
-                            if(property.Type === 2 && Array.isArray(property.Values)) {
-                                const temperature = property.Values[0];
-                                setTemperature(temperature)
-                            }
+                    if(id === 0) {
 
-                            if(property.Type === 1 && Array.isArray(property.Values)) {
-                                const batteryLevel= property.Values[0];
-                                setBatteryLevel(batteryLevel)
+                        if (message && Array.isArray(message.Items)) {        
+                            // Process Items as needed
+                            const item = message.Items.find(item => item.Mac === macAddressMonaLisa);        
+                            if (item) {
+                                item.BeaconProperties.forEach(property => {
+                                    switch(property.Type) {
+                                        case 1:
+                                            if(Array.isArray(property.Values)) 
+                                                setBatteryLevel(property.Values)
+                                            break
+                                        case 2:
+                                            if(Array.isArray(property.Values))
+                                                setTemperature(property.Values)
+                                            break
+                                        case 3:
+                                            if(Array.isArray(property.Values))
+                                                setCurrentCoordinates(property.Values)
+                                            break
+                                        case 1000:
+                                            if(Array.isArray(property.Values))
+                                                setActivity(property.Values)
+                                            break
+                                        case 1012:
+                                            if(Array.isArray(property.Values))
+                                                setClick(property.Values)
+                                            break
+                                    }
+                                });
+                            } else {
+                                console.warn("No item found with Mac address:", macAddressMonaLisa);
                             }
-                        });
-                    } else {
-                        console.warn("No item found with Mac address:", macAddressMonaLisa);
-                    }
-                } else {
-                    console.warn("Items field is missing or not an array:", message);
+                        } else {
+                            console.warn("Items field is missing or not an array:", message);
+                        }
+                }else if(id === 1) {
+                       console.log(message)
+                        if(message && Array.isArray(message.Hubs)) {
+                            setHubId(message.Hubs[0].HubId)
+                            setRssi(message.Hubs[0].Rssi)
+                            setTime(message.CreatedAt)
+                        } 
                 }
+            }
+                
             } catch (error) {
                 console.error("Error parsing JSON message:", error);
             }
-        }
-    },[])
-
+    },[data])
 
 
     return (
-        <div>
+        <div className="showcase">
             <h1> Showcase </h1>
-            <div className="showcase-base">
-                <img className="mona_lisa" src="mona_lisa.jpg" alt="Mona Lisa" width={200} height={200}/> 
-                <h2> Current Coordinates </h2>
-                <p>X: {currentCoordinates[0]}</p>
-                <p>Y: {currentCoordinates[1]}</p>
-                <p>Z: {currentCoordinates[2]} </p>
-                <h2> Button Click </h2>
-                <p>Res = {click} </p>
-                <h2>Temperature </h2>
-                <p> temperature = {temperature}</p>
-                <h2> Battery Level </h2>
-                <p> Battery: {batteryLevel}</p>
-                <h2>Activity</h2>
-                <p>{activity !== null ? activity : "No activity data available"}</p>
-            </div>
+            <hr/>
+                <a href="https://en.wikipedia.org/wiki/Mona_Lisa"> 
+                    <img className="mona_lisa" src="mona_lisa.jpg" alt="Mona Lisa" width={200} /> 
+                </a>
+                <div className="details">
+                    <p id="p1">X: {currentCoordinates[0]}</p>
+                    <p id="p2">Y: {currentCoordinates[1]}</p>
+                    <p id="p3">Z: {currentCoordinates[2]} </p>
+                    <h3>Button Click: </h3>
+                    <p>{click}</p>
+                    <h3>Temperature: </h3>
+                    <p>{temperature}</p>
+                    <h3>Battery Level: </h3>
+                    <p>{batteryLevel}</p>
+                    <h3>Activity: </h3>
+                    <p>{activity !== null ? activity : "No activity data available"}</p>
+                </div>
+                <div className="hub-info">
+                    <h3>Beacon is in the area of HUB: </h3>
+                    <p>{hubId}</p>
+                    <h3>RSSI value: </h3>
+                    <p>{rssi} </p>
+                    <h3>Time: </h3>
+                    <p>{time}</p>
+                </div>
         </div>
-    )
+)
 
 }
 

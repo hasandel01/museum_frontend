@@ -1,38 +1,85 @@
 .header{
   display: flex;
   align-items: center;
+  background-color: linen;
+  padding: 10px 20px;
 }
 
 .navigation {
-  list-style: none;
   display: flex;
+  gap: 20px;
+  font-size: 1.2em;
+  font-family: verdana, arial;
+  
 }
 
 .navigation li {
   margin-right: 20px;
+  text-decoration-line: none;
 }
 
-.showcase-base {
+.navigation a {
+  text-decoration: none;
+  color: saddlebrown;
+  font-size: 20px;
+  padding: 5px 10px;
+}
+
+.navigation a:hover {
+  text-decoration: underline;
+}
+
+.showcase {
+  font-family: verdana, arial;
+  background-color: linen;
   text-align: center;
-  background-color: #f0f0f0;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
-.showcase-base img {
+.showcase img {
   border: 5px solid #333;
   border-radius: 10px;
   margin-bottom: 20px;
 }
 
-.showcase-base h2 {
-  color: #333;
-  font-size: 1.5em;
+.showcase h3 {
+  color: saddlebrown;
   margin-top: 20px;
+  font-size: 16px;
 }
 
-.showcase-base p {
-  font-size: 1.2em;
+.showcase p {
+  font-size: 14px;
   color: #666;
+}
+
+.showcase h1 {
+  color: saddlebrown;
+  text-align: center;
+  text-decoration: dotted;
+}
+
+#p1 {
+  color: blue;
+}
+
+#p2 {
+  color: red;
+}
+
+#p3 {
+  color: green;
+}
+
+.details {
+  display: flex; /* Change from grid to flex */
+  align-items: center; /* Align items vertically centered */
+  gap: 10px; /* Optional: Add spacing between items */
+  margin: 10px 300px;
+}
+
+.hub-info {
+  margin-top: 50px;
 }
