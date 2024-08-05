@@ -1,37 +1,50 @@
-.header{
+.header {
   display: flex;
   align-items: center;
-  background-color: linen;
+  background-color: #3d52a0;
   padding: 10px 20px;
 }
 
 .navigation {
   display: flex;
-  gap: 20px;
-  font-size: 1.2em;
-  font-family: verdana, arial;
-  
+  font-size: 1.0em;
+  font-family: verdana, arial; 
+  list-style-type: none;
 }
 
 .navigation li {
+  margin-right: 20px;
+}
+
+.navigation li:last-child {
+  margin-right: 20px;
+}
+
+.navigation li:hover {
   margin-right: 20px;
   text-decoration-line: none;
 }
 
 .navigation a {
   text-decoration: none;
-  color: saddlebrown;
+  color: #ede8f5;
   font-size: 20px;
   padding: 5px 10px;
+  font-weight: bold;
+  border: 2px solid transparent;
+  border-radius: 5px;
+  transition: background-color 0.3s, border-color 0.3s;
 }
 
 .navigation a:hover {
-  text-decoration: underline;
+  background-color: #ede8f5;
+  color: #3d52a0;
+  border-color: #ede8f5;
 }
 
 .showcase {
   font-family: verdana, arial;
-  background-color: linen;
+  background-color: #ede8f5;
   text-align: center;
   padding: 20px;
   border-radius: 10px;
@@ -44,42 +57,46 @@
   margin-bottom: 20px;
 }
 
-.showcase h3 {
-  color: saddlebrown;
-  margin-top: 20px;
-  font-size: 16px;
+.details-header, .hub-info-header {
+  background-color: #3d52a0;
+  color: white;
+  padding: 10px;
+  font-weight: bold;
 }
 
-.showcase p {
-  font-size: 14px;
-  color: #666;
+table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.showcase h1 {
-  color: saddlebrown;
-  text-align: center;
-  text-decoration: dotted;
+td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  word-wrap: break-word; /* Prevents overflow */
 }
 
-#p1 {
-  color: blue;
+
+.label {
+  text-align: left;
+  font-weight: bold;
+  color: #3d52a0;
 }
 
-#p2 {
-  color: red;
+.value {
+  text-align: left;
+  color: #3d52a0;
 }
 
-#p3 {
-  color: green;
+.coordinates {
+  padding-left: 30px;
+  text-align: left;
+  color: #3d52a0;
+  font-weight: bold;
 }
 
-.details {
-  display: flex; /* Change from grid to flex */
-  align-items: center; /* Align items vertically centered */
-  gap: 10px; /* Optional: Add spacing between items */
-  margin: 10px 300px;
-}
-
-.hub-info {
-  margin-top: 50px;
+.date {
+  text-align: right;
+  font-style: italic;
+  color: #3d52a0;
+  font-size: 20px;
 }

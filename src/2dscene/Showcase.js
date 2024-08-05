@@ -13,12 +13,24 @@ const Showcase = () => {
     const [hubId, setHubId] = useState()
     const [rssi,setRssi] = useState()
     const [time,setTime] = useState()
-
-    const wsRef = useRef(null)
+    const [date, setDate] = useState()
+    const [alarmSound,setAlarmSound] = useState();
+  
+    useEffect(() => {
+        const sound = new Audio("/alarm.mp3");
+        setAlarmSound(sound);
+    
+        return () => {
+            sound.pause();
+            sound.src = ""; // Clear the source to release the memory
+        };
+    }, []);
+    
 
     useEffect(() => {
 
-            try {                      
+            try {        
+                
                 if(data) {
                     const {id, message} = data  
 
@@ -31,23 +43,18 @@ const Showcase = () => {
                                 item.BeaconProperties.forEach(property => {
                                     switch(property.Type) {
                                         case 1:
-                                            if(Array.isArray(property.Values)) 
                                                 setBatteryLevel(property.Values)
                                             break
                                         case 2:
-                                            if(Array.isArray(property.Values))
                                                 setTemperature(property.Values)
                                             break
                                         case 3:
-                                            if(Array.isArray(property.Values))
                                                 setCurrentCoordinates(property.Values)
                                             break
                                         case 1000:
-                                            if(Array.isArray(property.Values))
-                                                setActivity(property.Values)
+                                                setActivity(property.Values[0]);
                                             break
                                         case 1012:
-                                            if(Array.isArray(property.Values))
                                                 setClick(property.Values)
                                             break
                                     }
@@ -59,11 +66,20 @@ const Showcase = () => {
                             console.warn("Items field is missing or not an array:", message);
                         }
                 }else if(id === 1) {
-                       console.log(message)
-                        if(message && Array.isArray(message.Hubs)) {
+
+                    if(message && Array.isArray(message.Hubs)) {
                             setHubId(message.Hubs[0].HubId)
-                            setRssi(message.Hubs[0].Rssi)
-                            setTime(message.CreatedAt)
+                            setRssi(message.Hubs[0].Rssi)  
+
+                            const dateTime = new Date(message.CreatedAt)
+
+                            const optionsDate = { year: 'numeric', month: 'long', day: 'numeric'}
+                            const dateStr = new Intl.DateTimeFormat('en-US', optionsDate).format(dateTime)
+
+                            const optionsTime = {hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short'}
+                            const timeStr = Intl.DateTimeFormat('en-US', optionsTime).format(dateTime)
+                            setDate(dateStr)
+                            setTime(timeStr)
                         } 
                 }
             }
@@ -74,34 +90,74 @@ const Showcase = () => {
     },[data])
 
 
+    useEffect(() => {
+        if (activity === 1 && alarmSound) {
+            alarmSound.play().catch(error => {
+                console.error("Error playing sound:", error);
+            });
+        }
+    }, [activity, alarmSound]);
+
     return (
         <div className="showcase">
-            <h1> Showcase </h1>
-            <hr/>
                 <a href="https://en.wikipedia.org/wiki/Mona_Lisa"> 
-                    <img className="mona_lisa" src="mona_lisa.jpg" alt="Mona Lisa" width={200} /> 
+                    <img className="mona_lisa" src="mona_lisa.jpg" alt="Mona Lisa" width={320} /> 
                 </a>
-                <div className="details">
-                    <p id="p1">X: {currentCoordinates[0]}</p>
-                    <p id="p2">Y: {currentCoordinates[1]}</p>
-                    <p id="p3">Z: {currentCoordinates[2]} </p>
-                    <h3>Button Click: </h3>
-                    <p>{click}</p>
-                    <h3>Temperature: </h3>
-                    <p>{temperature}</p>
-                    <h3>Battery Level: </h3>
-                    <p>{batteryLevel}</p>
-                    <h3>Activity: </h3>
-                    <p>{activity !== null ? activity : "No activity data available"}</p>
-                </div>
-                <div className="hub-info">
-                    <h3>Beacon is in the area of HUB: </h3>
-                    <p>{hubId}</p>
-                    <h3>RSSI value: </h3>
-                    <p>{rssi} </p>
-                    <h3>Time: </h3>
-                    <p>{time}</p>
-                </div>
+                <h1 className="date"> {date} </h1>
+                <table>
+            <tbody>
+                <tr>
+                    <td colSpan={2} className="details-header">Details</td>
+                </tr>
+                <tr>
+                    <td className="label">Coordinates</td>
+                </tr>
+                <tr>
+                    <td className="coordinates">X</td>
+                    <td className="value">{currentCoordinates[0]}</td>
+                </tr>
+                <tr>
+                    <td className="coordinates">Y</td>
+                    <td className="value">{currentCoordinates[1]}</td>
+                </tr>
+                <tr>
+                    <td className="coordinates">Z</td>
+                    <td className="value">{currentCoordinates[2]}</td>
+                </tr>
+                <tr>
+                    <td className="label">Button Click</td>
+                    <td className="value">{click}</td>
+                </tr>
+                <tr>
+                    <td className="label">Temperature</td>
+                    <td className="value">{temperature}</td>
+                </tr>
+                <tr>
+                    <td className="label">Battery Level</td>
+                    <td className="value">{batteryLevel}</td>
+                </tr>
+                <tr>
+                    <td className="label">Activity</td>
+                    <td className="value">{activity !== null ? activity : "No activity data available"}</td>
+                </tr>
+                <tr>
+                    <td colSpan="2" className="hub-info-header">Hub Information</td>
+                </tr>
+                <tr>
+                    <td className="label">Beacon is in the area of HUB</td>
+                    <td className="value">{hubId}</td>
+                </tr>
+                <tr>
+                    <td className="label">RSSI value</td>
+                    <td className="value">{rssi}</td>
+                </tr>
+                <tr>
+                    <td className="label">Time</td>
+                    <td className="value">{time}</td>
+                </tr>
+            </tbody>
+        </table>
+
         </div>
 )
 

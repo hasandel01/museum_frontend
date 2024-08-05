@@ -64,7 +64,7 @@ const ThreeScene = () => {
         camera.position.z = 5;
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setClearColor(0xeeeeee)
+        renderer.setClearColor(0x000000)
         mountRef.current.appendChild(renderer.domElement);
 
         //Adding ambient light
@@ -76,7 +76,7 @@ const ThreeScene = () => {
         scene.add(directionalLight)
 
         //Room info
-        const roomSize = 50
+        const roomSize = 30
         const roomGeometry = new THREE.BoxGeometry(roomSize, roomSize, roomSize)
         const roomTexture = new THREE.TextureLoader().load("museum.jpg")
         const ceiling = new THREE.TextureLoader().load("ceiling.jpg")
@@ -148,7 +148,7 @@ const ThreeScene = () => {
             cube.rotation.x = THREE.MathUtils.degToRad(currentCoordinates[0])
             cube.rotation.y = THREE.MathUtils.degToRad(currentCoordinates[1])
 
-            if(activity == 1) 
+            if(activity === 1) 
                 alarmSphere.material.color.set(0xff0000)
             else
                 alarmSphere.material.color.set(0xffffff)
@@ -159,7 +159,7 @@ const ThreeScene = () => {
         };
 
         animate();
-
+        
         // Handle window resizing
         const handleResize = () => {
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -170,7 +170,7 @@ const ThreeScene = () => {
 
         // Clean up
         return () => {
-            window.removeEventListener('resize', handleResize);
+             window.removeEventListener('resize', handleResize);
             if (mountRef.current && rendererRef.current) {
                 mountRef.current.removeChild(rendererRef.current.domElement);
             }        };
