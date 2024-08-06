@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useWebSocket } from "../context/WebSocketContext";
+import sendEmail from "../Email";
 
 const Showcase = () => {
 
@@ -91,10 +92,14 @@ const Showcase = () => {
 
 
     useEffect(() => {
-        if (activity === 1 && alarmSound) {
-            alarmSound.play().catch(error => {
-                console.error("Error playing sound:", error);
-            });
+
+        if(activity === 1) {
+            sendEmail();
+                if (alarmSound) {
+                    alarmSound.play().catch(error => {
+                        console.error("Error playing sound:", error);
+                    });
+                }
         }
     }, [activity, alarmSound]);
 
