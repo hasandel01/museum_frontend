@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useWebSocket } from "../context/WebSocketContext";
 import sendEmail from "../Email";
+import { useAlarm } from "../context/AlarmContext";
 
 const Showcase = () => {
 
@@ -15,19 +16,8 @@ const Showcase = () => {
     const [rssi,setRssi] = useState()
     const [time,setTime] = useState()
     const [date, setDate] = useState()
-    const [alarmSound,setAlarmSound] = useState();
+    const alarmSound = useAlarm()
   
-    useEffect(() => {
-        const sound = new Audio("/alarm.mp3");
-        setAlarmSound(sound);
-    
-        return () => {
-            sound.pause();
-            sound.src = ""; // Clear the source to release the memory
-        };
-    }, []);
-    
-
     useEffect(() => {
 
             try {        
