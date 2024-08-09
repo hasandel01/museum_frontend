@@ -9,17 +9,16 @@ import { AlarmProvider } from './context/AlarmContext';
 function App() {
   return (
     <WebSocketProvider>
-      <AlarmProvider>
-        <Router>
-            <Header />
-              <Routes>
-                  <Route path="/" element= {<Showcase/>} />
-                  <Route path="/3dscene" element= {<ThreeScene/>} />
-              </Routes>
-        </Router>
-      </AlarmProvider>
+        <AlarmProvider>
+            <Router>
+                <Header />
+                  <Routes>
+                      <Route path="/" element= {<Showcase/>} />
+                      <Route path="/3dscene" element= {<ThreeScene/>} />
+                  </Routes>
+            </Router>
+        </AlarmProvider>
     </WebSocketProvider>
-
   );
 }
 

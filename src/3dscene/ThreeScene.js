@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, act } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { useWebSocket } from '../context/WebSocketContext';
@@ -134,9 +134,39 @@ const ThreeScene = () => {
         };
     }, []);
 
+    useEffect( () => {
+
+        if (alarmSphereRef.current) {
+            if (Array.isArray(activity) && activity[0] === 1) {
+            
+                sendEmail();
+               
+                    if (alarmSound) {
+                            alarmSound.play().catch(error => {
+                            console.error("Error playing sound:", error);
+                        });
+                    }
+                
+                if (alarmSound && alarmSound.paused) {
+                    alarmSound.play().catch(error => {
+                        console.error("Error playing sound:", error);
+                    });
+                }
+            } else {
+
+                if (alarmSound && !alarmSound.paused) {
+                    alarmSound.pause();
+                    alarmSound.currentTime = 0; 
+                }
+            }
+        }
+
+    }, [alarmSound,activity]);
+
     // Animation and updates
     useEffect(() => {
         const animate = () => {
+
             requestAnimationFrame(animate);
 
             if (cubeRef.current) {
@@ -147,21 +177,8 @@ const ThreeScene = () => {
             if (alarmSphereRef.current) {
                 if (Array.isArray(activity) && activity[0] === 1) {
                     alarmSphereRef.current.material.color.set(0xff0000); // Red Color
-                    sendEmail()
-                    
-                    if (alarmSound && alarmSound.paused) {
-                        alarmSound.play().catch(error => {
-                            console.error("Error playing sound:", error);
-                        });
-                    }
                 } else {
-                    alarmSphereRef.current.material.color.set(0xffffff);
-
-                    // Pause sound if it's playing
-                    if (alarmSound && !alarmSound.paused) {
-                        alarmSound.pause();
-                        alarmSound.currentTime = 0; // Reset playback position
-                    }
+                    alarmSphereRef.current.material.color.set(0xffffff); // White Color
                 }
             }
 
@@ -169,10 +186,10 @@ const ThreeScene = () => {
             if (rendererRef.current && cameraRef.current) {
                 rendererRef.current.render(sceneRef.current, cameraRef.current);
             }
-        };
+    };
 
-        animate();
-    }, [currentCoordinates, activity, alarmSound]);
+    animate();
+}, [currentCoordinates, activity]);
 
     return <div ref={mountRef} style={{ width: '100vw', height: '100vh' }} />;
 };

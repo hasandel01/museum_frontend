@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useWebSocket } from "../context/WebSocketContext";
-import sendEmail from "../Email";
 import { useAlarm } from "../context/AlarmContext";
+import sendEmail from '../Email';
 
 const Showcase = () => {
 
@@ -16,7 +16,7 @@ const Showcase = () => {
     const [rssi,setRssi] = useState()
     const [time,setTime] = useState()
     const [date, setDate] = useState()
-    const alarmSound = useAlarm()
+    const alarmSound = useAlarm()    
   
     useEffect(() => {
 
@@ -28,7 +28,6 @@ const Showcase = () => {
                     if(id === 0) {
 
                         if (message && Array.isArray(message.Items)) {        
-                            // Process Items as needed
                             const item = message.Items.find(item => item.Mac === macAddressMonaLisa);        
                             if (item) {
                                 item.BeaconProperties.forEach(property => {
@@ -84,7 +83,7 @@ const Showcase = () => {
     useEffect(() => {
 
         if(activity === 1) {
-            sendEmail();
+                sendEmail();
                 if (alarmSound) {
                     alarmSound.play().catch(error => {
                         console.error("Error playing sound:", error);
